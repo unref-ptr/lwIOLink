@@ -21,7 +21,7 @@ After improving my last project [Hardcoded IO-Link](https://github.com/unref-ptr
 
 If you find that the library works for an other Arduino board or does not work, notify me by opening an Issue.
 
-# How to Use
+## How to Use
 
 You can test the library by using the demo located in the [examples dir](https://github.com/unref-ptr/lwIOLink/tree/main/examples). In general the user has to define the process data size, and the cycle time. Whenever the device is in operate mode data from the master can be retrieved (PDOut) by implementing the callback function `lwIOLink::OnNewCycle()`. 
 
