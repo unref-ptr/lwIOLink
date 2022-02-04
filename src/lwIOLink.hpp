@@ -202,6 +202,7 @@ class lwIOLink
       PDBuffer Out;
       PDBuffer In;
     };
+    uint8_t GetMasterTXSize();
     //Reset the RX Line
     void ResetRX();
     //Get the MSeq Cap according B.1.4
@@ -220,10 +221,11 @@ class lwIOLink
     //Prepare the device message
     void prepareMessage(uint8_t od_size);
     /*
-    * Check if a complete Master message has arrived
-    * NewByte = New byte recieved from UART
+    * Called whenever a new RX frame 
+    * from the master is recieved
+    * rx_byte = byte recieved from the UART
     */
-    void checkIOLinkMasterMsg(uint8_t NewByte);
+    void SaveMasterFrame(uint8_t rx_byte);
     //Generate IOLink checksum
     uint8_t GetChecksum(uint8_t *data, uint8_t length, PDStatus status) ;
     //Decode cycletime - Table B.3
@@ -247,7 +249,7 @@ class lwIOLink
     MCAccess MasterAccess;
     uint8_t ExpectedRXCnt = 0;
     ioLink_states deviceState = wait_wake;
-    bool newIOLinkMasterFrame_recieved = false;
+    bool MasterMsgComplete = false;
     uint8_t rxCnt = 0;
     unsigned long CurrentCycleTime = 0;
     unsigned long LastMessage = 0;
