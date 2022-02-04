@@ -13,7 +13,7 @@ After improving my last project [Hardcoded IO-Link](https://github.com/unref-ptr
 ## Features
 
 - Send PDIn
-- Recieve PDIn
+- Recieve PDOut
 - Configurable Cycletime
 - Recover device after disconnection
 
