@@ -146,12 +146,11 @@ class lwIOLink
       Type2
     };
     //States for interpreting IO-Link data
-    typedef enum ioLink_states
+    enum ioLink_states
     {
       wait_wake, //Waiting for wakeup signal
-      wait_valid_frame, //Waiting for a complete IO-Link Master frame
-      run_mode  //state where checking for a new Master frame and parsing
-      //data reciveed
+      wait_valid_frame, //Waiting for a valid startup message
+      run_mode  //Master started communication with device
     };
 
     //Table B.2
