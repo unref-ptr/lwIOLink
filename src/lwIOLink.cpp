@@ -38,12 +38,12 @@ uint8_t lwIOLink::GetChecksum(uint8_t *data,
     ck8 ^= *data++;
   }
   //Section A.1.6
-  bool bit5 = ((ck8 >> 7)  & 1U) ^ ((ck8 >> 5)  & 1U) ^ ((ck8 >> 3)  & 1U) ^ ((ck8 >> 1)  & 1U);
-  bool bit4 = ((ck8 >> 6)  & 1U) ^ ((ck8 >> 4)  & 1U) ^ ((ck8 >> 2)  & 1U)  ^ (ck8 & 1U);
-  bool bit3 = ((ck8 >> 7)  & 1U) ^ ((ck8 >> 6)  & 1U);
-  bool bit2 = ((ck8 >> 5)  & 1U) ^ ((ck8 >> 4)  & 1U);
-  bool bit1 = ((ck8 >> 3)  & 1U) ^ ((ck8 >> 2)  & 1U);
-  bool bit0 = ((ck8 >> 1)  & 1U) ^ ((ck8 & 1U));
+  const bool bit5 = ((ck8 >> 7)  & 1U) ^ ((ck8 >> 5)  & 1U) ^ ((ck8 >> 3)  & 1U) ^ ((ck8 >> 1)  & 1U);
+  const bool bit4 = ((ck8 >> 6)  & 1U) ^ ((ck8 >> 4)  & 1U) ^ ((ck8 >> 2)  & 1U)  ^ (ck8 & 1U);
+  const bool bit3 = ((ck8 >> 7)  & 1U) ^ ((ck8 >> 6)  & 1U);
+  const bool bit2 = ((ck8 >> 5)  & 1U) ^ ((ck8 >> 4)  & 1U);
+  const bool bit1 = ((ck8 >> 3)  & 1U) ^ ((ck8 >> 2)  & 1U);
+  const bool bit0 = ((ck8 >> 1)  & 1U) ^ ((ck8 & 1U));
   uint8_t ck6 = bit5 << 5 |
                 bit4 << 4 |
                 bit3 << 3 |
@@ -352,15 +352,8 @@ void lwIOLink::begin(Stream &serial,
   initTransciever(WakeUpMode);  
 }
 
-void lwIOLink::checkIOLinkMasterMsg (uint8_t NewByte)
+inline uint8_t lwIOLink::GetMasterTXSize()
 {
-  rxBuffer[rxCnt++] = NewByte;
-  if (rxCnt == CKTFrameOffset )
-  {
-    //Get MSeqType Bits (Figure A.2  IO-Link Spec)
-    MSeqType mSeqType = static_cast<MSeqType>(rxBuffer[CKTFrameOffset ] >> 6);
-    MasterAccess = static_cast<MCAccess>(rxBuffer[MCOffset] >> 7); //First Uart frame is MC, check IO-Link spec  Figure A.1
-
     uint8_t od_size = 0;
     uint8_t pd_size = 0;
     if (deviceMode == start)
@@ -377,8 +370,7 @@ void lwIOLink::checkIOLinkMasterMsg (uint8_t NewByte)
         od_size = ODSize.Preop;
       }
     }
-    //Operate mode
-    else
+    else //Operate mod
     {
       if (MasterAccess == MCAccess::Write)
       {
@@ -386,11 +378,20 @@ void lwIOLink::checkIOLinkMasterMsg (uint8_t NewByte)
       }
       pd_size = Pd.Out.Size;
     }
-    ExpectedRXCnt = MasterMetadataOffset + od_size + pd_size;
-  }
-  if (rxCnt == ExpectedRXCnt)
+    return MasterMetadataOffset + od_size + pd_size;
+}
+
+void lwIOLink::SaveMasterFrame (const uint8_t rx_byte)
+{
+  rxBuffer[rxCnt] = rx_byte;
+  if (rxCnt == MCOffset)
   {
-    newIOLinkMasterFrame_recieved = true;
+    MasterAccess = static_cast<MCAccess>(rxBuffer[MCOffset] >> 7); //Figure A.1
+    ExpectedRXCnt = GetMasterTXSize();
+  }
+  if (rxCnt++ == ExpectedRXCnt)
+  {
+    MasterMsgComplete = true;
   }
 }
 
@@ -440,11 +441,11 @@ void lwIOLink::run()
       //First valid frame 0xA2 = MC (Read Page Channel, Min Cycle Time)
       if (_serial->available() > 0)
       {
-        uint8_t rx_byte = _serial->read();
+        const uint8_t rx_byte = _serial->read();
         if (rx_byte == 0xA2)
         {
           deviceState = run_mode;
-          checkIOLinkMasterMsg(rx_byte);
+          SaveMasterFrame(rx_byte);
         }
       }
       break;
@@ -452,8 +453,8 @@ void lwIOLink::run()
       unsigned long current_time = micros();
       if (_serial->available() > 0)
       {
-        uint8_t buff = _serial->read();
-        checkIOLinkMasterMsg(buff);
+        const uint8_t rx_byte = _serial->read();
+        SaveMasterFrame(rx_byte);
       }
       if( deviceMode == operate
          && (current_time - LastMessage) > CurrentCycleTime )
@@ -463,9 +464,9 @@ void lwIOLink::run()
           ResetRX();
           digitalWrite(TxEn, HIGH);
       }
-      else if (newIOLinkMasterFrame_recieved)
+      else if (MasterMsgComplete)
       {
-        newIOLinkMasterFrame_recieved = false;
+        MasterMsgComplete = false;
         ProcessMessage();
         uint8_t tx_size = SetResponse();
         DeviceRsp(txBuffer, tx_size);
