@@ -69,7 +69,7 @@ class lwIOLink
       pStats = Pointer to memory where status of PDOut will be saved
       Returns false if the device is not in operate
     */
-    bool GetPDOut(uint8_t * buffer, PDStatus * pStatus);
+    bool GetPDOut(uint8_t * buffer, PDStatus * pStatus) const;
     /*
       Sets the Process Data Input
       Returns false if the device is not in operate
@@ -84,7 +84,7 @@ class lwIOLink
      */
     bool SetPDInStatus(PDStatus pd_status);
     // Gets the current Mode of the IOLink device
-    Mode GetMode();
+    Mode GetMode() const;
     /* Callback for whenever an IOLink Cycle is completed in operate mode */
     static void OnNewCycle(void);
   private:
@@ -206,14 +206,14 @@ class lwIOLink
     //Reset the RX Line
     void ResetRX();
     //Get the MSeq Cap according B.1.4
-    uint8_t GetMseqCap();
+    uint8_t GetMseqCap() const;
     //Process an incoming Master Message
     void ProcessMessage();
     //Sets the Response for the Master, returns the total bytes to send
     uint8_t SetResponse();
     uint8_t rxBuffer[MaxIOLMsgSize];
     uint8_t txBuffer[MaxIOLMsgSize];
-    void initTransciever(int wakeup_mode);
+    void initTransciever(int wakeup_mode) const;
     //Parse the MC (Figure A.1)
     void ParseMC();
     //Send device response to master
@@ -227,11 +227,11 @@ class lwIOLink
     */
     void SaveMasterFrame(uint8_t rx_byte);
     //Generate IOLink checksum
-    uint8_t GetChecksum(uint8_t *data, uint8_t length, PDStatus status) ;
+    uint8_t GetChecksum(uint8_t *data, uint8_t length, PDStatus status) const;
     //Decode cycletime - Table B.3
-    uint32_t DecodeCycleTime(uint8_t encoded_time);
+    uint32_t DecodeCycleTime(uint8_t encoded_time) const;
     //Encode cycletime - Table B.3
-    uint8_t EncodeCycleTime(uint32_t cycleTime_us);
+    uint8_t EncodeCycleTime(uint32_t cycleTime_us) const;
     Stream * _serial;
     ioLink_message_t message;
 
