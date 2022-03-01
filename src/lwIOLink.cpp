@@ -275,7 +275,7 @@ void lwIOLink::ProcessMessage()
       else
       {
         auto write_param = static_cast<DP1_Param>(message.addr);
-        uint8_t ODWrite = rxBuffer[MasterOD_offset];
+        const uint8_t ODWrite = rxBuffer[MasterOD_offset];
         if (write_param == DP1_Param::MasterCommand)
         {
           Cmd = static_cast<MasterCommands>(ODWrite);
