@@ -29,7 +29,7 @@ static void WakeupIRQ()
 
 uint8_t lwIOLink::GetChecksum(uint8_t *data,
                                      uint8_t length,
-                                     PDStatus status)
+                                     PDStatus status) const
 {
   uint8_t ck8 = 0x52; //checksum Seed
   ck8 ^=  (status << 6);
@@ -54,7 +54,7 @@ uint8_t lwIOLink::GetChecksum(uint8_t *data,
 }
 
 //Encode PD according to B.1.6
-inline uint8_t EncodePD(uint8_t size_bytes)
+inline uint8_t EncodePD(uint8_t size_bytes) const
 {
   uint8_t Byte;
   uint8_t Len;
@@ -73,7 +73,7 @@ inline uint8_t EncodePD(uint8_t size_bytes)
   return Byte << 7 | (Len & 0x1F);
 }
 
-uint8_t lwIOLink::GetMseqCap()
+uint8_t lwIOLink::GetMseqCap() const
 {
   uint8_t PreopCode;
   uint8_t OpCode;
@@ -131,14 +131,14 @@ uint8_t lwIOLink::GetMseqCap()
 }
 
 
-uint32_t lwIOLink::DecodeCycleTime(uint8_t encoded_time)
+uint32_t lwIOLink::DecodeCycleTime(uint8_t encoded_time) const
 {
   uint8_t timebase_code = encoded_time>>6;
   uint8_t multiplier = encoded_time & 0x3F;
   return TimeOffsetLUT[timebase_code] + (multiplier * TimeBaseLUT[timebase_code]);
 }
 
-uint8_t lwIOLink::EncodeCycleTime(uint32_t cycleTime_us)
+uint8_t lwIOLink::EncodeCycleTime(uint32_t cycleTime_us) const
 {
   uint8_t timebase_code;
   uint8_t multiplier;
@@ -208,7 +208,7 @@ lwIOLink::lwIOLink(uint8_t PDIn, uint8_t PDOut, uint32_t min_cycletime)
   CurrentCycleTime = DecodeCycleTime(ParameterPage1[DP1_Param::MinCycleTime]);
 }
 
-bool lwIOLink::GetPDOut(uint8_t * buffer, PDStatus * pStatus)
+bool lwIOLink::GetPDOut(uint8_t * buffer, PDStatus * pStatus) const
 {
   memcpy(buffer, Pd.Out.Data, Pd.Out.Size);
   if (deviceMode == operate)
@@ -222,7 +222,7 @@ bool lwIOLink::GetPDOut(uint8_t * buffer, PDStatus * pStatus)
   }
 }
 
-lwIOLink::Mode lwIOLink::GetMode()
+lwIOLink::Mode lwIOLink::GetMode() const
 {
   return deviceMode;
 }
@@ -408,7 +408,7 @@ inline void lwIOLink::ResetRX()
   }
 }
 
-void lwIOLink::initTransciever(int wakeup_mode)
+void lwIOLink::initTransciever(int wakeup_mode) const
 {
   pinMode(TxEn, OUTPUT);
   pinMode(WuPin, INPUT_PULLUP);
