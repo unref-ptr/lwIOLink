@@ -38,13 +38,13 @@ uint8_t lwIOLink::GetChecksum(uint8_t *data,
     ck8 ^= *data++;
   }
   //Section A.1.6
-  const bool bit5 = ((ck8 >> 7)  & 1U) ^ ((ck8 >> 5)  & 1U) ^ ((ck8 >> 3)  & 1U) ^ ((ck8 >> 1)  & 1U);
-  const bool bit4 = ((ck8 >> 6)  & 1U) ^ ((ck8 >> 4)  & 1U) ^ ((ck8 >> 2)  & 1U)  ^ (ck8 & 1U);
-  const bool bit3 = ((ck8 >> 7)  & 1U) ^ ((ck8 >> 6)  & 1U);
-  const bool bit2 = ((ck8 >> 5)  & 1U) ^ ((ck8 >> 4)  & 1U);
-  const bool bit1 = ((ck8 >> 3)  & 1U) ^ ((ck8 >> 2)  & 1U);
-  const bool bit0 = ((ck8 >> 1)  & 1U) ^ ((ck8 & 1U));
-  uint8_t ck6 = bit5 << 5 |
+  const uint8_t bit5 = ((ck8 >> 7)  & 1U) ^ ((ck8 >> 5)  & 1U) ^ ((ck8 >> 3)  & 1U) ^ ((ck8 >> 1)  & 1U);
+  const uint8_t bit4 = ((ck8 >> 6)  & 1U) ^ ((ck8 >> 4)  & 1U) ^ ((ck8 >> 2)  & 1U)  ^ (ck8 & 1U);
+  const uint8_t bit3 = ((ck8 >> 7)  & 1U) ^ ((ck8 >> 6)  & 1U);
+  const uint8_t bit2 = ((ck8 >> 5)  & 1U) ^ ((ck8 >> 4)  & 1U);
+  const uint8_t bit1 = ((ck8 >> 3)  & 1U) ^ ((ck8 >> 2)  & 1U);
+  const uint8_t bit0 = ((ck8 >> 1)  & 1U) ^ ((ck8 & 1U));
+  const uint8_t ck6 = bit5 << 5 |
                 bit4 << 4 |
                 bit3 << 3 |
                 bit2 << 2 |
@@ -70,7 +70,7 @@ inline uint8_t EncodePD(uint8_t size_bytes)
     Len = size_bytes - 1;
   }
 
-  return Byte << 7 | Len & 0x1F;
+  return Byte << 7 | (Len & 0x1F);
 }
 
 uint8_t lwIOLink::GetMseqCap()
@@ -127,7 +127,7 @@ uint8_t lwIOLink::GetMseqCap()
   {
     OpCode = 7;
   }
-  return PreopCode << 4 | OpCode << 1 | ISDUSupported;
+  return PreopCode << 4 | OpCode << 1 | static_cast<uint8_t>(ISDUSupported);
 }
 
 
@@ -160,15 +160,15 @@ uint8_t lwIOLink::EncodeCycleTime(uint32_t cycleTime_us)
     cycleTime_us = 132800;
   }
 
-  if (cycleTime_us >= 400 && cycleTime_us <= 6300)
+  if (cycleTime_us <= 6300)
   {
     timebase_code = 0;
   }
-  else if (cycleTime_us >= 6400 && cycleTime_us <= 31600)
+  else if (cycleTime_us <= 31600)
   {
     timebase_code = 1;
   }
-  else if (cycleTime_us >= 32000 && cycleTime_us <= 132800)
+  else
   {
     timebase_code = 2;
   }
@@ -187,6 +187,9 @@ lwIOLink::lwIOLink(uint8_t PDIn, uint8_t PDOut, uint32_t min_cycletime)
 {
   memset(Pd.Out.Data, 0, sizeof(Pd.Out.Data));
   memset(Pd.In.Data, 0, sizeof(Pd.Out.Data));
+  memset(rxBuffer, 0, sizeof(rxBuffer));
+  memset(txBuffer, 0, sizeof(txBuffer));
+  memset(ODBuffer, 0, sizeof(ODBuffer));
   Pd.Out.Size = PDOut;
   Pd.In.Size = PDIn;
   /* Populate Direct Parameter Page 1 */
@@ -271,7 +274,7 @@ void lwIOLink::ProcessMessage()
       }
       else
       {
-        DP1_Param write_param = static_cast<DP1_Param>(message.addr);
+        auto write_param = static_cast<DP1_Param>(message.addr);
         uint8_t ODWrite = rxBuffer[MasterOD_offset];
         if (write_param == DP1_Param::MasterCommand)
         {
