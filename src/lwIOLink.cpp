@@ -54,7 +54,7 @@ uint8_t lwIOLink::GetChecksum(uint8_t *data,
 }
 
 //Encode PD according to B.1.6
-inline uint8_t EncodePD(uint8_t size_bytes) const
+inline uint8_t EncodePD(uint8_t size_bytes)
 {
   uint8_t Byte;
   uint8_t Len;
