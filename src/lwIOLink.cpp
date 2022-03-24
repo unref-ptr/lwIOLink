@@ -392,7 +392,7 @@ void lwIOLink::SaveMasterFrame (const uint8_t rx_byte)
     MasterAccess = static_cast<MCAccess>(rxBuffer[MCOffset] >> 7); //Figure A.1
     ExpectedRXCnt = GetMasterTXSize();
   }
-  if (rxCnt++ == ExpectedRXCnt)
+  if (++rxCnt == ExpectedRXCnt)
   {
     MasterMsgComplete = true;
   }
