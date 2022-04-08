@@ -17,9 +17,10 @@ After improving my last project [Hardcoded IO-Link](https://github.com/unref-ptr
 - Configurable Cycletime
 - Recover device after disconnection
 
-## Tested for 
+## Tested Arduino Targets 
 
-* Arduino UNO
+* UNO
+* ESP32
 
 If you find that the library works for an other Arduino board or does not work, notify me by opening an Issue.
 
