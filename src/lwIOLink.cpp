@@ -18,6 +18,17 @@
 
 #include "lwIOLink.hpp"
 
+#ifdef ARDUINO_ARCH_ESP32
+
+#include "driver/uart.h"
+#include "soc/uart_reg.h"
+
+static constexpr unsigned tx_pin = 17;
+static constexpr unsigned rx_pin = 16; 
+
+
+#endif //ARDUINO_ARCH_ESP32
+
 uint32_t constexpr lwIOLink::TimeBaseLUT[TotalTimeEncodings];
 uint32_t constexpr lwIOLink::TimeOffsetLUT[TotalTimeEncodings];
 static volatile bool wakeup_signal = false;
@@ -348,9 +359,35 @@ void lwIOLink::begin(Stream &serial,
   WuPin = WakeupPin;
   _serial = &serial;
 #ifdef ARDUINO_SAM_DUE
-  static_cast<UARTClass*>(_serial)->begin(baud, SERIAL_8E1);
+  static_cast<UARTClass*>(_serial)->begin(static_cast<uint32_t>(baud), SERIAL_8E1);
+#elif defined(ARDUINO_ARCH_ESP32)
+  static_cast<HardwareSerial*>(_serial)->begin(static_cast<uint32_t>(baud), SERIAL_8E1,rx_pin, tx_pin); 
+  uint8_t uart_num;
+  if(_serial==&Serial)
+  {
+      uart_num = 0;
+  }
+  else if(_serial==&Serial1)
+  {
+      uart_num = 1;
+  }
+  else
+  {
+      uart_num = 2;
+  }
+  uart_intr_config_t uart_intr;
+  uart_intr.intr_enable_mask = UART_RXFIFO_FULL_INT_ENA_M
+                               | UART_RXFIFO_TOUT_INT_ENA_M
+                               | UART_FRM_ERR_INT_ENA_M
+                               | UART_RXFIFO_OVF_INT_ENA_M
+                               | UART_BRK_DET_INT_ENA_M
+                               | UART_PARITY_ERR_INT_ENA_M;
+  uart_intr.rxfifo_full_thresh = 1;
+  uart_intr.rx_timeout_thresh = 10;
+  uart_intr.txfifo_empty_intr_thresh = 10;
+  uart_intr_config(uart_num, &uart_intr);
 #else
-  static_cast<HardwareSerial*>(_serial)->begin(baud, SERIAL_8E1); 
+  static_cast<HardwareSerial*>(_serial)->begin(static_cast<uint32_t>(baud), SERIAL_8E1); 
 #endif
   initTransciever(WakeUpMode);  
 }
@@ -445,6 +482,7 @@ void lwIOLink::run()
       if (_serial->available() > 0)
       {
         const uint8_t rx_byte = _serial->read();
+        Serial.write(rx_byte);
         if (rx_byte == 0xA2)
         {
           deviceState = run_mode;
@@ -457,6 +495,7 @@ void lwIOLink::run()
       if (_serial->available() > 0)
       {
         const uint8_t rx_byte = _serial->read();
+        Serial.write(rx_byte);
         SaveMasterFrame(rx_byte);
       }
       if( deviceMode == operate
