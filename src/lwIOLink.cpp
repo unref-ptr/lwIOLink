@@ -482,7 +482,6 @@ void lwIOLink::run()
       if (_serial->available() > 0)
       {
         const uint8_t rx_byte = _serial->read();
-        Serial.write(rx_byte);
         if (rx_byte == 0xA2)
         {
           deviceState = run_mode;
@@ -495,7 +494,6 @@ void lwIOLink::run()
       if (_serial->available() > 0)
       {
         const uint8_t rx_byte = _serial->read();
-        Serial.write(rx_byte);
         SaveMasterFrame(rx_byte);
       }
       if( deviceMode == operate
