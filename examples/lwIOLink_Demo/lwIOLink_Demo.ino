@@ -20,15 +20,13 @@
 static  unsigned constexpr PDInSize = 2;
 static  unsigned constexpr PDOutSize = 2;
 static unsigned constexpr min_cycle_time = 50000; //Cycle time in microseconds for operate mode
-
 uint8_t PDOut[PDOutSize] = {0,0}; //Buffer that recieves data from the Master
 uint8_t PDIn[PDInSize] = {0,1}; //Buffer which will be sent to the Master
 
-
-constexpr lwIOLink::Config_t IOLinkConfig =
+constexpr lwIOLink::HWConfig HWCfg =
 {
-  .serial = Serial2, 
-  .baud = lwIOLink::COM3,
+  .SerialPort = Serial, 
+  .Baud = lwIOLink::COM2,
   .WakeupMode = FALLING, 
   .Pin = 
   {
@@ -40,7 +38,6 @@ constexpr lwIOLink::Config_t IOLinkConfig =
 #endif
   }
 };
-
 
 lwIOLink iol_device( PDInSize, PDOutSize, min_cycle_time);
 
@@ -63,11 +60,12 @@ void lwIOLink::OnNewCycle()
 
 }
 
-void setup() {
-  iol_device.begin(IOLinkConfig);
+void setup()
+{
+  iol_device.begin(HWCfg);
 }
 
-void loop() {
+void loop()
+{
   iol_device.run();
-
 }
