@@ -32,33 +32,47 @@ class lwIOLink
     //Modes for the Device
     enum Mode
     {
-      start,
-      preoperate,
-      operate
+	start,
+	preoperate,
+	operate
     };
     enum BaudRate
     {
-      COM1 = 4800,
-      COM2 = 38400,
-      COM3 = 230400
+	COM1 = 4800,
+	COM2 = 38400,
+	COM3 = 230400
     };
     //Table A.5
     enum PDStatus
     {
-      Valid = 0,
-      Invalid = 1
+	Valid = 0,
+	Invalid = 1
+    };
+    struct Config_t
+    {
+	Stream &serial; 		 //reference to Serial port
+	BaudRate baud;			// baud rate for transmission
+	int WakeupMode; 	/* Type of interrupt to detect wakeup from transceiver   
+		   			FALLING, RISING */
+	struct Pin_t
+	{
+		unsigned TxEN;  	 //Digital Output pin used to enable TX of data
+		unsigned Wakeup;	/* Digital Input pin used to get Wakeup Requests
+		  			Must be interrupt capable. */
+#ifdef ARDUINO_ARCH_ESP32
+		/* Most ESP32 Dev kits dont have default UART
+		  pins exposed. Hence need to configure available pins                   
+		*/
+		unsigned Tx;	
+		unsigned Rx;
+#endif //ARDUINO_ARCH_ESP32
+	};
+	Pin_t Pin;
     };
     /*
        Begin the IOLink Device Hardware
-       serial = reference to Serial port
-       baud = baud rate for transmission
-       TxEn = Digital Output pin used to enable TX of data
-       WakeUpPin = Digital Input pin used to get Wakeup Requests
-                   Must be interrupt capable. 
-      WakeupMode = Type of interrupt to detect wakeup from transceiver   
-                    FALLING, RISING
     */
-    void begin(Stream &serial,BaudRate baud, unsigned TxEn, unsigned WakeupPin,int WakeUpMode = FALLING);
+    void begin(const Config_t config);
     /*
        Run the IOLink Device, should be called in a loop
     */
@@ -107,100 +121,100 @@ class lwIOLink
     //Message struct for IO-Link
     struct ioLink_message_t
     {
-      uint8_t channel;
-      uint8_t addr;
+	uint8_t channel;
+	uint8_t addr;
     };
 
     enum Channel
     {
-      PROCESS = 0,
-      PAGE ,
-      DIAGNOSIS,
-      ISDU
+	PROCESS = 0,
+	PAGE ,
+	DIAGNOSIS,
+	ISDU
     };
     struct ODSize_t
     {
-      uint8_t Startup;
-      uint8_t Preop;
-      uint8_t Op;
+	uint8_t Startup;
+	uint8_t Preop;
+	uint8_t Op;
     };
     //OD Size for the device (1,2,8 or 32)
     static ODSize_t constexpr ODSize =
     {
-      .Startup = 1,
-      .Preop = 8,
-      .Op = 2
+	.Startup = 1,
+	.Preop = 8,
+	.Op = 2
     };
     //Table A.2
     enum class MCAccess
     {
-      Read = 1,
-      Write = 0
+	Read = 1,
+	Write = 0
     };
 
     //Table A.3
     enum class MSeqType
     {
-      Type0 = 0,
-      Type1,
-      Type2
+	Type0 = 0,
+	Type1,
+	Type2
     };
     //States for interpreting IO-Link data
     enum ioLink_states
     {
-      wait_wake, //Waiting for wakeup signal
-      wait_valid_frame, //Waiting for a valid startup message
-      run_mode  //Master started communication with device
+	wait_wake, //Waiting for wakeup signal
+	wait_valid_frame, //Waiting for a valid startup message
+	run_mode  //Master started communication with device
     };
 
     //Table B.2
     enum MasterCommands
     {
-      MasterIdent = 0x95,
-      DeviceIden = 0x96,
-      DeviceStartup = 0x97,
-      PDOutOperate = 0x98,
-      Operate = 0x99,
-      Preoperate = 0x9A,
+	MasterIdent = 0x95,
+	DeviceIden = 0x96,
+	DeviceStartup = 0x97,
+	PDOutOperate = 0x98,
+	Operate = 0x99,
+	Preoperate = 0x9A,
     };
     /* Table B.1 */
     enum DP1_Param
     {
-      MasterCommand = 0x00,
-      MasterCycleTime,
-      MinCycleTime,
-      MSeqCap,
-      RevisionID,
-      ProcessDataIn,
-      ProcessDataOut,
-      VID1,
-      VID2,
-      VID3,
-      DID1,
-      DID2,
-      DID3,
-      FID1,
-      FID2,
-      Res,
-      SystemCommand
+	MasterCommand = 0x00,
+	MasterCycleTime,
+	MinCycleTime,
+	MSeqCap,
+	RevisionID,
+	ProcessDataIn,
+	ProcessDataOut,
+	VID1,
+	VID2,
+	VID3,
+	DID1,
+	DID2,
+	DID3,
+	FID1,
+	FID2,
+	Res,
+	SystemCommand
     };
   
     struct Status
     {
-      PDStatus PDIn;
-      PDStatus PDOut;
+	PDStatus PDIn;
+	PDStatus PDOut;
     };
 
     struct PDBuffer
     {
-      uint8_t Data[MaxPD];
-      size_t Size;
+	uint8_t Data[MaxPD];
+	size_t Size;
     };
 
     struct PD
     {
-      PDBuffer Out;
-      PDBuffer In;
+	PDBuffer Out;
+	PDBuffer In;
     };
     uint8_t GetMasterTXSize();
     //Reset the RX Line
