@@ -17,6 +17,11 @@ After improving my last project [Hardcoded IO-Link](https://github.com/unref-ptr
 - Configurable Cycletime
 - Recover device after disconnection
 
+### Future work
+
+- ISDU (?). ISDU processing is complex, left to any highly motivated developer out there to contribute ;)
+- Events Requires adding event flag to CKS, buffer to store Events and dispatch over diagnosis channel.
+
 ## Tested Arduino Targets 
 
 * UNO
