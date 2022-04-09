@@ -20,11 +20,27 @@
 static  unsigned constexpr PDInSize = 2;
 static  unsigned constexpr PDOutSize = 2;
 static unsigned constexpr min_cycle_time = 50000; //Cycle time in microseconds for operate mode
-static  unsigned constexpr EnablePin = 4;
-static  unsigned constexpr WakeupPin = 2;
 
 uint8_t PDOut[PDOutSize] = {0,0}; //Buffer that recieves data from the Master
 uint8_t PDIn[PDInSize] = {0,1}; //Buffer which will be sent to the Master
+
+
+constexpr lwIOLink::Config_t IOLinkConfig =
+{
+  .serial = Serial2, 
+  .baud = lwIOLink::COM3,
+  .WakeupMode = FALLING, 
+  .Pin = 
+  {
+    .TxEN = 18,
+    .Wakeup = 5,
+#ifdef ARDUINO_ARCH_ESP32
+    .Tx = 17,
+    .Rx = 16
+#endif
+  }
+};
+
 
 lwIOLink iol_device( PDInSize, PDOutSize, min_cycle_time);
 
@@ -48,7 +64,7 @@ void lwIOLink::OnNewCycle()
 }
 
 void setup() {
-  iol_device.begin(Serial,lwIOLink::COM2, EnablePin, WakeupPin, FALLING);
+  iol_device.begin(IOLinkConfig);
 }
 
 void loop() {
