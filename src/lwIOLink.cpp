@@ -349,19 +349,15 @@ inline void lwIOLink::ParseMC()
   message.addr = rxBuffer[MCOffset] & 0x1F;
 }
 
-void lwIOLink::begin(Stream &serial,
-                    BaudRate baud,
-                    unsigned EnablePin,
-                    unsigned WakeupPin,
-                    int WakeUpMode)
+void lwIOLink::begin(const Config_t config)
 {
-  TxEn = EnablePin;
-  WuPin = WakeupPin;
-  _serial = &serial;
+  TxEn = config.Pin.TxEN;
+  WuPin =  config.Pin.Wakeup;
+  _serial = &config.serial;
 #ifdef ARDUINO_SAM_DUE
-  static_cast<UARTClass*>(_serial)->begin(static_cast<uint32_t>(baud), SERIAL_8E1);
+  static_cast<UARTClass*>(_serial)->begin(static_cast<uint32_t>(config.baud), SERIAL_8E1);
 #elif defined(ARDUINO_ARCH_ESP32)
-  static_cast<HardwareSerial*>(_serial)->begin(static_cast<uint32_t>(baud), SERIAL_8E1,rx_pin, tx_pin); 
+  static_cast<HardwareSerial*>(_serial)->begin(static_cast<uint32_t>(config.baud), SERIAL_8E1,rx_pin, tx_pin); 
   uint8_t uart_num;
   if(_serial==&Serial)
   {
@@ -387,9 +383,9 @@ void lwIOLink::begin(Stream &serial,
   uart_intr.txfifo_empty_intr_thresh = 10;
   uart_intr_config(uart_num, &uart_intr);
 #else
-  static_cast<HardwareSerial*>(_serial)->begin(static_cast<uint32_t>(baud), SERIAL_8E1); 
+  static_cast<HardwareSerial*>(_serial)->begin(static_cast<uint32_t>(config.baud), SERIAL_8E1); 
 #endif
-  initTransciever(WakeUpMode);  
+  initTransciever(config.WakeupMode);  
 }
 
 inline uint8_t lwIOLink::GetMasterTXSize()
