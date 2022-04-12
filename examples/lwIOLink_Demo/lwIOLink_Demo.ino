@@ -11,24 +11,27 @@
   GNU General Public License for more details.
   You should have received a copy of the GNU General Public License
   along with lwIOLink.  If not, see <https://www.gnu.org/licenses/>.
-  
+
   Contact information:
   <unref-ptr@protonmail.com>
 */
 #include <stdint.h>
 #include "lwIOLink.hpp"
+
+using namespace lwIOLink;
+
 static  unsigned constexpr PDInSize = 2;
 static  unsigned constexpr PDOutSize = 2;
 static unsigned constexpr min_cycle_time = 50000; //Cycle time in microseconds for operate mode
-uint8_t PDOut[PDOutSize] = {0,0}; //Buffer that recieves data from the Master
-uint8_t PDIn[PDInSize] = {0,1}; //Buffer which will be sent to the Master
+uint8_t PDOut[PDOutSize] = {0, 0}; //Buffer that recieves data from the Master
+uint8_t PDIn[PDInSize] = {0, 1}; //Buffer which will be sent to the Master
 
-constexpr lwIOLink::HWConfig HWCfg =
+constexpr Device::HWConfig HWCfg =
 {
-  .SerialPort = Serial, 
-  .Baud = lwIOLink::COM2,
-  .WakeupMode = FALLING, 
-  .Pin = 
+  .SerialPort = Serial2,
+  .Baud = lwIOLink::COM3,
+  .WakeupMode = FALLING,
+  .Pin =
   {
     .TxEN = 18,
     .Wakeup = 5,
@@ -39,9 +42,17 @@ constexpr lwIOLink::HWConfig HWCfg =
   }
 };
 
-lwIOLink iol_device( PDInSize, PDOutSize, min_cycle_time);
+Device iol_device( PDInSize, PDOutSize, min_cycle_time);
 
-void lwIOLink::OnNewCycle()
+/*
+ * Optional static callback to know when Master has read events
+ */
+void Device::OnEventsProcessed()
+{
+  Serial.println("Events Processed by Master!");
+}
+
+void Device::OnNewCycle()
 {
   PDStatus PDOutStatus;
   bool pdOut_ok = iol_device.GetPDOut(PDOut, &PDOutStatus);
@@ -49,20 +60,29 @@ void lwIOLink::OnNewCycle()
   {
     //dosomething with pdOut
   }
-  //Modify PDIn 
+
+  //Modify PDIn
   PDIn[0]++;
   PDIn[1]++;
   bool result = iol_device.SetPDIn(PDIn, sizeof(PDIn));
   if ( result == true)
   {
-      iol_device.SetPDInStatus(lwIOLink::Valid);
+    iol_device.SetPDInStatus(lwIOLink::Valid);
   }
 
 }
 
 void setup()
 {
+  Serial.begin(115200);
   iol_device.begin(HWCfg);
+  /* Example API of how to Set IO-Link Events
+  */
+  uint16_t EventCode = 0x1234;
+  // Note: Cannot Set events in ISR, not concurrent safe
+  Event::POD MyEvent(Event::Qualifier::Application, Event::Qualifier::SingleShot, EventCode);
+  Device::EventResult result = iol_device.SetEvent(MyEvent);
+  (void)result; //Normally you would check that the Event could be set
 }
 
 void loop()
