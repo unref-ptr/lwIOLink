@@ -22,9 +22,12 @@
 #include "soc/uart_reg.h"
 # endif	//ARDUINO_ARCH_ESP32
 
+using namespace lwIOLink;
+
 //Checksum constants (Figure A.3)
 static constexpr uint8_t ck8_seed = 0x52;
 static constexpr uint8_t status_bit_offset = 0x06;
+static constexpr uint8_t eventFlag_bit_offset = 0x07;
 //Time encoding constants (Figure B.2)
 static constexpr uint8_t timebase_bitoffset = 0x06;
 static constexpr uint8_t multiplier_mask = 0x3F;
@@ -33,20 +36,28 @@ static constexpr uint8_t MC_ChMask = 0x60;
 static constexpr uint8_t MC_AddrMask = 0x1F;
 static constexpr uint8_t MC_ChBitOffset = 5;
 
-uint32_t constexpr lwIOLink::TimeBaseLUT[TotalTimeEncodings];
-uint32_t constexpr lwIOLink::TimeOffsetLUT[TotalTimeEncodings];
+uint32_t constexpr Device::TimeBaseLUT[TotalTimeEncodings];
+uint32_t constexpr Device::TimeOffsetLUT[TotalTimeEncodings];
 static volatile bool wakeup_signal = false;
+
 
 static void WakeupIRQ()
 {
     wakeup_signal = true;
 }
 
-uint8_t lwIOLink::GetChecksum(uint8_t *data,
-    uint8_t length,
-    PDStatus status) const
+void __attribute__((weak)) Device::OnEventsProcessed() 
 {
-    const uint8_t status_encoded = (status << status_bit_offset);
+    
+}
+
+uint8_t Device::GetChecksum(const uint8_t *data,
+                            uint8_t length,
+                            PDStatus status,
+                            bool eventFlag) const
+{
+    const uint8_t status_encoded =  static_cast<uint8_t>(status << status_bit_offset)
+                                    | static_cast<uint8_t>(eventFlag<<eventFlag_bit_offset);
     uint8_t ck8 = ck8_seed;
     ck8 ^= status_encoded;
     for (uint8_t i = 0; i < length - 1; i++)
@@ -89,7 +100,7 @@ uint8_t EncodePD(uint8_t size_bytes)
     return Byte << 7 | (Len & 0x1F);
 }
 
-uint8_t lwIOLink::GetMseqCap() const
+uint8_t Device::GetMseqCap() const
 {
     uint8_t PreopCode;
     uint8_t OpCode;
@@ -146,14 +157,14 @@ uint8_t lwIOLink::GetMseqCap() const
     return PreopCode << 4 | OpCode << 1 | static_cast<uint8_t> (ISDUSupported);
 }
 
-uint32_t lwIOLink::DecodeCycleTime(uint8_t encoded_time) const
+uint32_t Device::DecodeCycleTime(uint8_t encoded_time) const
 {
     const uint8_t timebase_code = encoded_time >> timebase_bitoffset;
     const uint8_t multiplier = encoded_time & multiplier_mask;
     return TimeOffsetLUT[timebase_code] + (multiplier *TimeBaseLUT[timebase_code]);
 }
 
-uint8_t lwIOLink::EncodeCycleTime(uint32_t cycleTime_us) const
+uint8_t Device::EncodeCycleTime(uint32_t cycleTime_us) const
 {
     uint8_t timebase_code;
     uint8_t multiplier;
@@ -198,13 +209,14 @@ uint8_t lwIOLink::EncodeCycleTime(uint32_t cycleTime_us) const
     return (timebase_code << timebase_bitoffset | multiplier);
 }
 
-lwIOLink::lwIOLink(uint8_t PDIn, uint8_t PDOut, uint32_t min_cycletime)
+Device::Device(uint8_t PDIn, uint8_t PDOut, uint32_t min_cycletime)
 {
     memset(Pd.Out.Data, 0, sizeof(Pd.Out.Data));
     memset(Pd.In.Data, 0, sizeof(Pd.Out.Data));
     memset(rxBuffer, 0, sizeof(rxBuffer));
     memset(txBuffer, 0, sizeof(txBuffer));
     memset(ODBuffer, 0, sizeof(ODBuffer));
+    EventMemory[EventStatusCodeAddr] = Event::StatusCodeDefault;
     Pd.Out.Size = PDOut;
     Pd.In.Size = PDIn;
     /*Populate Direct Parameter Page 1 */
@@ -223,7 +235,7 @@ lwIOLink::lwIOLink(uint8_t PDIn, uint8_t PDOut, uint32_t min_cycletime)
     CurrentCycleTime = DecodeCycleTime(ParameterPage1[DP1_Param::MinCycleTime]);
 }
 
-bool lwIOLink::GetPDOut(uint8_t *buffer, PDStatus *pStatus) const
+bool Device::GetPDOut(uint8_t *buffer, PDStatus *pStatus) const
 {
     memcpy(buffer, Pd.Out.Data, Pd.Out.Size);
     if (deviceMode == operate)
@@ -237,12 +249,48 @@ bool lwIOLink::GetPDOut(uint8_t *buffer, PDStatus *pStatus) const
     }
 }
 
-lwIOLink::Mode lwIOLink::GetMode() const
+        
+Device::EventResult Device::SetEvent(Event::POD newEvent)
+{
+   EventResult result = EventResult::EventOK;
+   do
+   {
+        if (ReadingEventMemory == true)
+        {
+            result = EventResult::ProcessingEvents;
+            break;
+        }
+        if (TotalEvents < MaxEvents )
+        {
+           const uint8_t memory_offset = Event::SizeStatusCode + (TotalEvents * Event::SizeRawEvent);
+           const uint8_t QualifierOffset = memory_offset;
+           const uint8_t EventCodeMSB = memory_offset + 1U;
+           const uint8_t EventCodeLSB = memory_offset + 2U;
+           EventMemory[QualifierOffset] = newEvent.EventQualifier;
+           EventMemory[EventCodeMSB] = static_cast<uint8_t>(newEvent.EventCode >> 8U);
+           EventMemory[EventCodeLSB] = static_cast<uint8_t>(newEvent.EventCode & 0xFF);
+
+           EventMemory[EventStatusCodeAddr] |= 1UL << TotalEvents;
+           
+           TotalEvents++;
+        }
+        else
+        {
+            result = EventResult::EventMemoryFull;
+            break;
+        }
+      
+   } while(0);   
+   return result;
+   
+}
+
+lwIOLink::Mode Device::GetMode() const
 {
     return deviceMode;
 }
 
-bool lwIOLink::SetPDInStatus(PDStatus pd_status)
+bool Device::SetPDInStatus(PDStatus pd_status)
 {
     if (deviceMode == operate)
     {
@@ -255,7 +303,7 @@ bool lwIOLink::SetPDInStatus(PDStatus pd_status)
     }
 }
 
-bool lwIOLink::SetPDIn(uint8_t *pData, uint8_t len)
+bool Device::SetPDIn(uint8_t *pData, uint8_t len)
 {
     if (deviceMode == operate)
     {
@@ -271,7 +319,7 @@ bool lwIOLink::SetPDIn(uint8_t *pData, uint8_t len)
     }
 }
 
-void lwIOLink::ProcessMessage()
+void Device::ProcessMessage()
 {
     uint8_t MasterOD_offset = MCSize + ChecksumSize;
     ParseMC();
@@ -282,7 +330,7 @@ void lwIOLink::ProcessMessage()
     }
     switch (message.channel)
     {
-        case PAGE:
+        case Page:
             if (MasterAccess == MCAccess::Read)
             {
                 ODBuffer[0] = ParameterPage1[message.addr];
@@ -302,18 +350,65 @@ void lwIOLink::ProcessMessage()
                 }
             }
             break;
-           	//Not implemented
-        case ISDU:
-        case DIAGNOSIS:
+        case ISDU: //Not implemented
             if (MasterAccess == MCAccess::Read)
             {
                 memset(ODBuffer, 0x69, sizeof(ODBuffer));
             }
             break;
+        case Diagnosis:
+            if ( MasterAccess == MCAccess::Read)
+            {               
+                if( TotalEvents > 0 )
+                {
+                    if ( ReadingEventMemory != true)
+                    {
+                        ReadingEventMemory = true;
+                    }
+                }
+                if( message.addr < sizeof(EventMemory) ) 
+                {
+                    const uint8_t read_bytes = sizeof(EventMemory) - message.addr;
+                    uint8_t od_size;
+                    if (deviceMode == start)
+                    {
+                        od_size = ODSize.Startup;
+                    }
+                    else if (deviceMode == preoperate)
+                    {
+                        od_size = ODSize.Preop;
+                    }
+                    else
+                    {
+                        od_size = ODSize.Op;
+                    }
+                    uint8_t copy_size;
+                    if( read_bytes < od_size)
+                    {
+                        copy_size = read_bytes;
+                    }
+                    else
+                    {
+                        copy_size = od_size; 
+                    }
+                    memcpy(ODBuffer,&EventMemory[message.addr],copy_size);
+                }
+            }
+            else
+            {
+                if ( message.addr == EventStatusCodeAddr)
+                {
+                    ReadingEventMemory = false;
+                    TotalEvents = 0;
+                    EventMemory[EventStatusCodeAddr] = Event::StatusCodeDefault;
+                    EventsProcessed = true;
+                }
+            }
+            break;
     }
 }
 
-uint8_t lwIOLink::SetResponse()
+uint8_t Device::SetResponse()
 {
     uint8_t tx_size = ChecksumSize;
     uint8_t od_size = 0;
@@ -343,18 +438,24 @@ uint8_t lwIOLink::SetResponse()
         tx_size += od_size;
     }
     const uint8_t checksum_offset = tx_size - 1;
-    txBuffer[checksum_offset] = GetChecksum(txBuffer, tx_size, status.PDIn);
+    bool eventFlag = false;
+    if ( TotalEvents > 0)
+    {
+        eventFlag = true;
+    }
+    txBuffer[checksum_offset] = GetChecksum(txBuffer, tx_size, status.PDIn,eventFlag);
+    
     return tx_size;
 }
 
 
-inline void lwIOLink::ParseMC()
+inline void Device::ParseMC()
 {
     message.channel = (rxBuffer[MCOffset] & MC_ChMask) >> MC_ChBitOffset;
     message.addr = rxBuffer[MCOffset] & MC_AddrMask;
 }
 
-void lwIOLink::begin(const HWConfig config)
+void Device::begin(const HWConfig config)
 {
     TxEn = config.Pin.TxEN;
     WuPin = config.Pin.Wakeup;
@@ -393,7 +494,7 @@ void lwIOLink::begin(const HWConfig config)
     initTransciever(config.WakeupMode);
 }
 
-inline uint8_t lwIOLink::GetMasterTXSize()
+inline uint8_t Device::GetMasterTXSize()
 {
     uint8_t od_size = 0;
     uint8_t pd_size = 0;
@@ -422,7 +523,7 @@ inline uint8_t lwIOLink::GetMasterTXSize()
     return MasterMetadataOffset + od_size + pd_size;
 }
 
-void lwIOLink::SaveMasterFrame(const uint8_t rx_byte)
+void Device::SaveMasterFrame(const uint8_t rx_byte)
 {
     rxBuffer[rxCnt] = rx_byte;
     if (rxCnt == MCOffset)
@@ -432,11 +533,11 @@ void lwIOLink::SaveMasterFrame(const uint8_t rx_byte)
     }
     if (++rxCnt == ExpectedRXCnt)
     {
-        MasterMsgComplete = true;
+        NewMasterMsg = true;
     }
 }
 
-void lwIOLink::ResetRX()
+void Device::ResetRX()
 {
     rxCnt = 0;
     ExpectedRXCnt = 0xFF;
@@ -446,7 +547,7 @@ void lwIOLink::ResetRX()
     }
 }
 
-void lwIOLink::initTransciever(int wakeup_mode) const
+void Device::initTransciever(int wakeup_mode) const
 {
     pinMode(TxEn, OUTPUT);
     pinMode(WuPin, INPUT_PULLUP);
@@ -454,7 +555,7 @@ void lwIOLink::initTransciever(int wakeup_mode) const
     attachInterrupt(digitalPinToInterrupt(WuPin), WakeupIRQ, wakeup_mode);
 }
 
-void lwIOLink::DeviceRsp(uint8_t *data, uint8_t len)
+void Device::DeviceRsp(uint8_t *data, uint8_t len)
 {
     digitalWrite(TxEn, HIGH);
     for (uint8_t i = 0; i < len; i++)
@@ -466,7 +567,7 @@ void lwIOLink::DeviceRsp(uint8_t *data, uint8_t len)
     ResetRX();
 }
 
-void lwIOLink::run()
+void Device::run()
 {
     switch (deviceState)
     {
@@ -505,12 +606,17 @@ void lwIOLink::run()
                 ResetRX();
                 digitalWrite(TxEn, HIGH);
             }
-            else if (MasterMsgComplete)
+            else if (NewMasterMsg)
             {
-                MasterMsgComplete = false;
+                NewMasterMsg = false;
                 ProcessMessage();
                 uint8_t tx_size = SetResponse();
                 DeviceRsp(txBuffer, tx_size);
+                if (EventsProcessed == true)
+                {
+                    EventsProcessed = false;
+                    OnEventsProcessed();
+                }
                 LastMessage = micros();
                 if (deviceMode == operate)
                 {
