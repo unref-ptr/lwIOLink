@@ -1,14 +1,14 @@
 # lwIOLink 
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-green.svg)](https://www.gnu.org/licenses/gpl-3.0)
-![version](https://img.shields.io/badge/version-0.0.4-blue)
+![version](https://img.shields.io/badge/version-0.1.0-blue)
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/unrefptr)
 
 
 *A Light weight IO-Link device communication library for Arduino.*
 
-After improving my last project [Hardcoded IO-Link](https://github.com/unref-ptr/hardcoded-iolink), I have managed to reduce the complexity of the IO-Link communication to send (PDIn) and receive data (PDOut) over an IO-Link Master. The reason the library is called "light weight" is because its missing most of the features of IO-Link such as events and ISDU parameters.
+After improving my last project [Hardcoded IO-Link](https://github.com/unref-ptr/hardcoded-iolink), I have managed to reduce the complexity of the IO-Link communication to send (PDIn) and receive data (PDOut) over an IO-Link Master. The reason the library is called "light weight" is because it simplifies the communication and some of the "complex" features are missing.
 
 ## Features
 
@@ -16,11 +16,12 @@ After improving my last project [Hardcoded IO-Link](https://github.com/unref-ptr
 - Recieve PDOut
 - Configurable Cycletime
 - Recover device after disconnection
+- Events
 
-### Future work
+### TODO
 
 - ISDU (?). ISDU processing is complex, left to any highly motivated developer out there to contribute ;)
-- Events. Requires adding event flag to CKS, buffer to store Events and dispatch over diagnosis channel.
+- Data Storage (?) Also Complex as it depends on ISDU.
 
 ## Tested Arduino Targets 
 
