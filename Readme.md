@@ -27,7 +27,7 @@ After improving my last project [Hardcoded IO-Link](https://github.com/unref-ptr
 * UNO
 * ESP32
 
-If you find that the library works for an other Arduino board or does not work, notify me by opening an Issue.
+If you find that the library works for another Arduino board or does not work, notify me by opening an Issue.
 
 ## How to Use
 
