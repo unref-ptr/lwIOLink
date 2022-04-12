@@ -26,6 +26,7 @@ static unsigned constexpr min_cycle_time = 50000; //Cycle time in microseconds f
 uint8_t PDOut[PDOutSize] = {0, 0}; //Buffer that recieves data from the Master
 uint8_t PDIn[PDInSize] = {0, 1}; //Buffer which will be sent to the Master
 
+//Hardware configuration for the device
 constexpr Device::HWConfig HWCfg =
 {
   .SerialPort = Serial2,
