@@ -21,13 +21,14 @@
 
 namespace lwIOLink
 {
-    //Modes for the Device
+    //IO-Link device modes
     enum Mode
     {
         start,
         preoperate,
         operate
     };
+    //IO-Link baudrates
     enum BaudRate: uint32_t
     {
         COM1 = 4800,
@@ -145,12 +146,12 @@ namespace lwIOLink
           Get the Process Data Output
           buffer = Pointer to Buffer where to store PDOut
           pStats = Pointer to memory where status of PDOut will be saved
-          Returns false if the device is not in operate
+          Returns false if the device is not in operate mode
         */
         bool GetPDOut(uint8_t * buffer, PDStatus * pStatus) const;
         /*
           Sets the Process Data Input
-          Returns false if the device is not in operate
+          Returns false if the device is not in operate mode
           or the len > than the available PDIn Size
         */
         bool SetPDIn(uint8_t * pData, uint8_t len);
@@ -163,7 +164,10 @@ namespace lwIOLink
         bool SetPDInStatus(PDStatus pd_status);
         // Gets the current Mode of the IOLink device
         Mode GetMode() const;
-        /* Callback for whenever an IOLink Cycle is completed in operate mode */
+        /* Callback for whenever an IOLink Cycle is completed in operate mode
+	* Can be used to update the PDIN data, read a sensor or do a specific operation
+	* for the application
+	*/
         static void OnNewCycle(void);
         
         enum class EventResult
@@ -178,7 +182,12 @@ namespace lwIOLink
           Note: Function is not concurrent safe. Do not Call inside ISR
         */
         EventResult SetEvent(Event::POD newEvent);
-        /* User Callback for whenever IO-Link Master has processed Events [Optional] */
+        /* User Callback for whenever IO-Link Master has processed Events [Optional] 
+	* Events sent from the IO-Link device are read from the so-called Event Memory.
+	* The Master can take up some IO-Link MSeq Frames to complete reading the data.
+	* This function is called once the Master confirms it has read the complete Event Memory
+	* It can be useful to call this function in case more events are pending to be sent.
+	*/
         static void OnEventsProcessed(void);
       private:
         static unsigned constexpr MaxPD = 32;
