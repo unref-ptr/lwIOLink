@@ -489,6 +489,11 @@ void Device::begin(const HWConfig config)
     uart_intr.txfifo_empty_intr_thresh = 10;
     uart_intr_config(uart_num, &uart_intr);
 #else
+#ifdef ARDUINO_RASPBERRY_PI_PICO
+    static_cast<SerialUART*>(SerialPort)->setRX(config.Pin.Rx);
+    static_cast<SerialUART*>(SerialPort)->setTX(config.Pin.Tx);
+    static_cast<SerialUART*>(SerialPort)->setPollingMode(true);
+#endif //ARDUINO_RASPBERRY_PI_PICO
     static_cast<HardwareSerial*>(SerialPort)->begin(static_cast<uint32_t> (config.Baud), SERIAL_8E1);
 #endif
     initTransciever(config.WakeupMode);
@@ -552,7 +557,11 @@ void Device::initTransciever(int wakeup_mode) const
     pinMode(TxEn, OUTPUT);
     pinMode(WuPin, INPUT_PULLUP);
     digitalWrite(TxEn, HIGH);
+#ifdef ARDUINO_RASPBERRY_PI_PICO
+    attachInterrupt(digitalPinToInterrupt(WuPin), WakeupIRQ, static_cast<PinStatus>(wakeup_mode));
+#else
     attachInterrupt(digitalPinToInterrupt(WuPin), WakeupIRQ, wakeup_mode);
+#endif
 }
 
 void Device::DeviceRsp(uint8_t *data, uint8_t len)
