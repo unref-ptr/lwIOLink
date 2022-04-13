@@ -36,7 +36,7 @@ constexpr Device::HWConfig HWCfg =
   {
     .TxEN = 18,
     .Wakeup = 5,
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_RASPBERRY_PI_PICO)
     .Tx = 17,
     .Rx = 16
 #endif
