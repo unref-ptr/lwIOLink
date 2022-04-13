@@ -1,7 +1,7 @@
 # lwIOLink 
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-green.svg)](https://www.gnu.org/licenses/gpl-3.0)
-![version](https://img.shields.io/badge/version-0.1.0-blue)
+![version](https://img.shields.io/badge/version-0.1.1-blue)
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/unrefptr)
 
@@ -25,8 +25,9 @@ After improving my last project [Hardcoded IO-Link](https://github.com/unref-ptr
 
 ## Tested Arduino Targets 
 
-* UNO
-* ESP32
+* UNO     (COM1,COM2)
+* ESP32   (COM1,COM2,COM3)
+* RPI Pico (COM1,COM2)
 
 If you find that the library works for another Arduino board or does not work, notify me by opening an Issue.
 
