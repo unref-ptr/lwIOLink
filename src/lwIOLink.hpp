@@ -123,13 +123,12 @@ namespace lwIOLink
                 unsigned TxEN;  	 //Digital Output pin used to enable TX of data
                 unsigned Wakeup;	/* Digital Input pin used to get Wakeup Requests
                             Must be interrupt capable. */
-    #ifdef ARDUINO_ARCH_ESP32
-                /* Most ESP32 Dev kits dont have default UART
-                  pins exposed. Hence need to configure available pins                   
+    #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_RASPBERRY_PI_PICO)
+                /* Some Arduino boards require to specify the UART Pins                 
                 */
                 unsigned Tx;	
                 unsigned Rx;
-    #endif //ARDUINO_ARCH_ESP32
+    #endif
             };
             Pin_t Pin;
         };
