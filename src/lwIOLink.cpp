@@ -20,7 +20,7 @@
 #ifdef ARDUINO_ARCH_ESP32
 #include "driver/uart.h"
 #include "soc/uart_reg.h"
-# endif	//ARDUINO_ARCH_ESP32
+#endif	//ARDUINO_ARCH_ESP32
 
 using namespace lwIOLink;
 
