@@ -340,7 +340,7 @@ namespace lwIOLink
         */
         void SaveMasterFrame(uint8_t rx_byte);
         //Generate IOLink checksum
-        uint8_t GetChecksum(const uint8_t *data, uint8_t length, PDStatus status,bool eventFlag) const;
+        uint8_t GetChecksum(const uint8_t *data, uint8_t length) const;
         //Decode cycletime according to Table B.3, return value time in microseconds
         uint32_t DecodeCycleTime(uint8_t encoded_time) const;
         /* Encode cycletime according to Table B.3
