@@ -28,6 +28,10 @@ using namespace lwIOLink;
 static constexpr uint8_t ck8_seed = 0x52;
 static constexpr uint8_t status_bit_offset = 0x06;
 static constexpr uint8_t eventFlag_bit_offset = 0x07;
+//Figure A.2
+static uint8_t mseq_ckt_mask = 0xC0;
+static uint8_t mseq_ckt_mask = 0xC0;
+static uint8_t ck6_mask = 0x3F;
 //Time encoding constants (Figure B.2)
 static constexpr uint8_t timebase_bitoffset = 0x06;
 static constexpr uint8_t multiplier_mask = 0x3F;
@@ -52,15 +56,10 @@ void __attribute__((weak)) Device::OnEventsProcessed()
 }
 
 uint8_t Device::GetChecksum(const uint8_t *data,
-                            uint8_t length,
-                            PDStatus status,
-                            bool eventFlag) const
+                            uint8_t length) const
 {
-    const uint8_t status_encoded =  static_cast<uint8_t>(status << status_bit_offset)
-                                    | static_cast<uint8_t>(eventFlag<<eventFlag_bit_offset);
     uint8_t ck8 = ck8_seed;
-    ck8 ^= status_encoded;
-    for (uint8_t i = 0; i < length - 1; i++)
+    for (uint8_t i = 0; i < length i++)
     {
         ck8 ^= *data++;
     }
@@ -77,7 +76,7 @@ uint8_t Device::GetChecksum(const uint8_t *data,
                             bit2 << 2 |
                             bit1 << 1 |
                             bit0;
-    return status_encoded | ck6;
+    return ck6;
 }
 
 //Encode PD according to B.1.6
@@ -443,8 +442,11 @@ uint8_t Device::SetResponse()
     {
         eventFlag = true;
     }
-    txBuffer[checksum_offset] = GetChecksum(txBuffer, tx_size, status.PDIn,eventFlag);
-    
+    const uint8_t status_encoded =  static_cast<uint8_t>(status << status_bit_offset)
+                                    | static_cast<uint8_t>(eventFlag<<eventFlag_bit_offset);
+    txBuffer[checksum_offset] = status_encoded;
+    uint8_t ck6 = GetChecksum(txBuffer, tx_size);
+    txBuffer[checksum_offset] |= ck6;
     return tx_size;
 }
 
@@ -538,7 +540,20 @@ void Device::SaveMasterFrame(const uint8_t rx_byte)
     }
     if (++rxCnt == ExpectedRXCnt)
     {
-        NewMasterMsg = true;
+	const uint8_t checksum_byte = rxCnt-1;
+	const uint8_t master_checksum = rxBuffer[checksum_byte] & ck6_mask;
+	rxBuffer[checksum_byte] &= mseq_ckt_mask; //Remove checksum
+	const uint8_t calculated_checksum = GetChecksum(rxBuffer,rxCnt); //Calculate the checksum
+	if ( master_checksum == calculated_checksum)
+	{
+	    NewMasterMsg = true;
+	}
+	else
+	{
+	    rxCnt = 0;
+            ExpectedRXCnt = 0xFF;
+	}
+       
     }
 }
 
