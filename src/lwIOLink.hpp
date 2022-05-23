@@ -324,8 +324,8 @@ namespace lwIOLink
         void ProcessMessage();
         //Sets the Response for the Master, returns the total bytes to send
         uint8_t SetResponse();
-        uint8_t rxBuffer[MaxIOLMsgSize];
-        uint8_t txBuffer[MaxIOLMsgSize];
+        uint8_t rxBuffer[MaxIOLMsgSize]{};
+        uint8_t txBuffer[MaxIOLMsgSize]{};
         void initTransciever(int wakeup_mode) const;
         //Parse the MC (Figure A.1)
         void ParseMC();
@@ -351,12 +351,12 @@ namespace lwIOLink
         uint8_t EncodeCycleTime(uint32_t cycleTime_us) const;
         Stream * SerialPort = nullptr; 
         ioLink_message_t message;
-        PD Pd;
-        uint8_t ODBuffer[MaxOD];
+        PD Pd{};
+        uint8_t ODBuffer[MaxOD]{};
         /* Process Data status */
         Status status = { .PDIn = Valid, .PDOut = Invalid};
         /* Table B.1 */
-        uint8_t ParameterPage1[SizeDP1] = {0};
+        uint8_t ParameterPage1[SizeDP1]{};
         bool NewCmd = false;
         unsigned TxEn;
         unsigned WuPin;
@@ -371,4 +371,3 @@ namespace lwIOLink
         unsigned long LastMessage = 0;
     };
 };
-    
