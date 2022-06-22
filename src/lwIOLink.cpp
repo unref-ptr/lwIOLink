@@ -320,6 +320,7 @@ void Device::ProcessMessage()
     memset(ODBuffer, 0, sizeof(ODBuffer));	//Clear OD
     if (deviceMode == operate)
     {
+    	memcpy(Pd.Out.Data, &rxBuffer[MasterOD_offset], Pd.Out.Size);
         MasterOD_offset += Pd.Out.Size;
     }
     switch (message.channel)
