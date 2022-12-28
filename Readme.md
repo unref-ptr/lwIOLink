@@ -8,7 +8,7 @@
 
 *A Light weight IO-Link device communication library for Arduino.*
 
-After improving my last project [Hardcoded IO-Link](https://github.com/unref-ptr/hardcoded-iolink), I have managed to reduce the complexity of the IO-Link communication to send (PDIn) and receive data (PDOut) over an IO-Link Master. The reason the library is called "light weight" is because it simplifies the communication and some of the "complex" features are missing.
+This library reduces the complexity of the IO-Link communication to send (PDIn) and receive data (PDOut) over an IO-Link Master. The reason the library is called "light weight" is because it simplifies the communication and some of the "complex" features are missing. It must be noted that the aim of this library was not to follow the spec. but to simplify the communication by "dumbing down" the protocol.
 
 ## Features
 
@@ -23,7 +23,7 @@ After improving my last project [Hardcoded IO-Link](https://github.com/unref-ptr
 - The scope of this library is to build light-weight IO-Link devices.
 - It is not intended to use for production as it will probably not conform to the spec.
 - The library is not intended to be use to read IO-Link devices. You will need to develop your own IO-Link Master stack (which is out of the scope of this project).
-- There is no IODD available. The library is used to test the communication protocol. Please consult the IO-Link [IODD spec]([IODD](https://io-link.com/share/Downloads/Spec-IODD/IO_Device_Description_V1.1_Specification.zip)) to generate your own IODD.
+- There is no IODD available. The library is used to test the communication protocol. Please consult the IO-Link [IODD spec](https://io-link.com/share/Downloads/Spec-IODD/IO_Device_Description_V1.1_Specification.zip) to generate your own IODD.
 
 
 ### TODO
