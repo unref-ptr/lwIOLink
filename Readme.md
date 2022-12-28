@@ -18,10 +18,20 @@ After improving my last project [Hardcoded IO-Link](https://github.com/unref-ptr
 - Recover device after disconnection
 - Events
 
+## Caveats
+
+- The scope of this library is to build light-weight IO-Link devices.
+- It is not intended to use for production as it will probably not conform to the spec.
+- The library is not intended to be use to read IO-Link devices. You will need to develop your own IO-Link Master stack (which is out of the scope of this project).
+- There is no IODD available. The library is used to test the communication protocol. Please consult the IO-Link [IODD spec]([IODD](https://io-link.com/share/Downloads/Spec-IODD/IO_Device_Description_V1.1_Specification.zip)) to generate your own IODD.
+
+
 ### TODO
 
-- ISDU (?). ISDU processing is complex, left to any highly motivated developer out there to contribute ;)
-- Data Storage (?) Also Complex as it depends on ISDU.
+#### Low Priority
+
+- ISDU: ISDU processing requires to follow the IO-Link spec. and its state machines...left to any highly motivated developer out there to contribute ;)
+- Data Storage: Depends on ISDU, and it requires a HAL to access non-volatile storage.
 
 ## Tested Arduino Targets 
 
@@ -30,6 +40,8 @@ After improving my last project [Hardcoded IO-Link](https://github.com/unref-ptr
 * RPI Pico (COM1,COM2)
 
 If you find that the library works for another Arduino board or does not work, notify me by opening an Issue.
+
+Note: Some MCUs might not work in COM3 due to the timing constraings of the IO-Link spec. and the non-optimized Arduino Core libraries.
 
 ## How to Use
 
