@@ -26,6 +26,7 @@ please look for commercial alternatives as this library will not scale and is no
 - The library is not optimized for real-time applications as it polls for serial IO-Link data.
 - The library is not intended to be use to read IO-Link devices. You will need to develop your own IO-Link Master stack (which is out of the scope of this project).
 - There is no IODD available. The library is used to test the communication protocol. Please consult the IO-Link [IODD spec](https://io-link.com/share/Downloads/Spec-IODD/IO_Device_Description_V1.1_Specification.zip) to generate your own IODD.
+- The IO-Link Master inspection level has to be set disabled (NO_CHECK) as ISDU is not supported. See spec v1.1.3 for technical info about Inspection Level (Table 80 and Table E.3). Disabling it is IO-Link Master specific.
 
 
 ### TODO
@@ -56,7 +57,7 @@ The [cycle time](https://github.com/unref-ptr/lwIOLink/blob/ea4fb8b749b550778cd0
 
 ## Hardware
 
-Hardware-wise IO-Link requires an IO-Link device transceiver. Tested with an LT3669 transciever but theoretically any transciever, that has a UART interface (TX,RX), a Wakeup pin (for notification via interrupt) and an TXEN pin (pin that has to be pulled high to send data), should work. 
+- Hardware-wise IO-Link requires an IO-Link device transceiver. Tested with an LT3669 transciever but theoretically any transciever, that has a UART interface (TX,RX), a Wakeup pin (for notification via interrupt) and an TXEN pin (pin that has to be pulled high to send data), should work. 
 
 ## Contributions
 
