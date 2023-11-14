@@ -44,7 +44,7 @@ jobs:
         run: |
           ls $GITHUB_WORKSPACE
           sudo mkdir -p $ARDUINO_LIB_PATH
-          sudo cp $GITHUB_WORKSPACE -r $CI_PROJECT_DIR $ARDUINO_LIB_PATH          
+          sudo cp $GITHUB_WORKSPACE/../lwIOLink -r $CI_PROJECT_DIR $ARDUINO_LIB_PATH          
 
 
       # Finally, we compile the sketch, using the FQBN that was set
