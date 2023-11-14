@@ -6,7 +6,7 @@ jobs:
   build:
     env:
       ARDUINO_LIB_PATH: /home/runner/Arduino/libraries
-      ESP32_BOARD_URL: https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+      ESP32_BOARD_URL: https://dl.espressif.com/dl/package_esp32_index.json
     strategy:
       matrix:
         arduino-platform: ["arduino:avr"]
@@ -35,7 +35,7 @@ jobs:
 
       # Install the Arduino platform
       # Will be determined dynamically by the build matrix.
-       #arduino-cli config set board_manager.additional_urls "$ESP32_BOARD_URL"
+       #arduino-cli config set board_manager.additional_urls "${ESP32_BOARD_URL}"
       - name: Install platform
         run: |
           arduino-cli core update-index
