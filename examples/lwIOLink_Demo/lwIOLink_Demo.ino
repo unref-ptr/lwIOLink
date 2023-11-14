@@ -16,7 +16,7 @@
   <unref-ptr@protonmail.com>
 */
 #include <stdint.h>
-#include "lwIOLink.hpp"
+#include <lwIOLink.hpp>
 
 using namespace lwIOLink;
 
