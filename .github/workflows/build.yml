@@ -10,7 +10,7 @@ jobs:
       RPI_BOARD_URL: https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
     strategy:
       matrix:
-        arduino-platform: ["arduino:avr","esp32:esp32","pico:pico"]
+        arduino-platform: ["arduino:avr","esp32:esp32","rp2040:rp2040"]
         # This is usually optional but we need to statically define the
         # FQBN of the boards we want to test for each platform. In the
         # future the CLI might automatically detect and download the core
