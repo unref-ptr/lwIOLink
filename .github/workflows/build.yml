@@ -35,10 +35,11 @@ jobs:
 
       # Install the Arduino platform
       # Will be determined dynamically by the build matrix.
+       #arduino-cli config set board_manager.additional_urls "$ESP32_BOARD_URL"
       - name: Install platform
         run: |
           arduino-cli core update-index
-          arduino-cli config set board_manager.additional_urls "$ESP32_BOARD_URL"
+         
           arduino-cli core install ${{ matrix.arduino-platform }}
           
       # Install lwIOLink as an Arduino library
