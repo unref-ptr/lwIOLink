@@ -17,8 +17,7 @@ jobs:
         include:
           # This works like this: when the platform is "arduino:samd", the
           # variable `fqbn` is set to "arduino:samd:nano_33_iot".
-          - arduino-platform: "esp32"
-            fqbn: "esp32:esp32:esp32"
+
           - arduino-platform: "arduino:avr"
             fqbn: "arduino:avr:uno"
 
