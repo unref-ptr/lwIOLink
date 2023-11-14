@@ -1,0 +1,61 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    env:
+      ARDUINO_LIB_PATH: /home/runner/Arduino/libraries
+      ESP32_BOARD_URL: https://dl.espressif.com/dl/package_esp32_index.json
+      RPI_BOARD_URL: https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
+    strategy:
+      matrix:
+        arduino-platform: ["arduino:avr","esp32:esp32","rp2040:rp2040"]
+        # This is usually optional but we need to statically define the
+        # FQBN of the boards we want to test for each platform. In the
+        # future the CLI might automatically detect and download the core
+        # needed to compile against a certain FQBN, at that point the
+        # following `include` section will be useless.
+        include:
+          # This works like this: when the platform is "arduino:samd", the
+          # variable `fqbn` is set to "arduino:samd:nano_33_iot".
+          - arduino-platform: "esp32:esp32"
+            fqbn: "esp32:esp32:esp32"
+          - arduino-platform: "rp2040:rp2040"
+            fqbn: "rp2040:rp2040:rpipico"
+          - arduino-platform: "arduino:avr"
+            fqbn: "arduino:avr:uno"
+
+    runs-on: ubuntu-22.04
+
+    steps:
+      # Clone the repo
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install Arduino CLI
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v1
+
+      # Install the Arduino platform
+      # Will be determined dynamically by the build matrix.
+      - name: Install platform
+        run: |
+          arduino-cli core update-index
+          arduino-cli config init
+          arduino-cli config set board_manager.additional_urls "${ESP32_BOARD_URL}"
+          arduino-cli config set board_manager.additional_urls "${RPI_BOARD_URL}"
+          arduino-cli core install ${{ matrix.arduino-platform }}
+          
+      # Install lwIOLink as an Arduino library
+      - name: Install library
+        run: |
+          sudo mkdir -p $ARDUINO_LIB_PATH
+          sudo cp $GITHUB_WORKSPACE/../lwIOLink -r $ARDUINO_LIB_PATH
+
+      # Finally, we compile the sketch, using the FQBN that was set
+      # in the build matrix.
+      - name: Compile Sketch
+        run: |
+          arduino-cli lib list
+          arduino-cli compile --fqbn ${{ matrix.fqbn }} ./examples/lwIOLink_Demo
