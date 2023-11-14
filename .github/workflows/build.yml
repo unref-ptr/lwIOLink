@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        arduino-platform: ["esp32", "arduino:avr"]
+        arduino-platform: ["arduino:avr"]
         # This is usually optional but we need to statically define the
         # FQBN of the boards we want to test for each platform. In the
         # future the CLI might automatically detect and download the core
@@ -18,7 +18,7 @@ jobs:
           - arduino-platform: "esp32"
             fqbn: "esp32:esp32:esp32"
           - arduino-platform: "arduino:avr"
-            fqbn: "arduino:avr:unowifi"
+            fqbn: "arduino:avr:uno"
 
     runs-on: ubuntu-22.04
 
