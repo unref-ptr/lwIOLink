@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   build:
     env:
-      ARDUINO_LIB_PATH: /root/Arduino/libraries
+      ARDUINO_LIB_PATH: /home/runner/Arduino/libraries
     strategy:
       matrix:
         arduino-platform: ["arduino:avr"]
