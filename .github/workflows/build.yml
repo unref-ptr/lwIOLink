@@ -49,4 +49,6 @@ jobs:
       # Finally, we compile the sketch, using the FQBN that was set
       # in the build matrix.
       - name: Compile Sketch
-        run: arduino-cli compile --fqbn ${{ matrix.fqbn }} ./examples/lwIOLink_Demo
+        run: |
+          sudo ls $ARDUINO_LIB_PATH/lwIOLink
+          arduino-cli compile --fqbn ${{ matrix.fqbn }} ./examples/lwIOLink_Demo
