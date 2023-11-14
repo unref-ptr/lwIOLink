@@ -1,0 +1,44 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        arduino-platform: ["esp32", "arduino:avr"]
+        # This is usually optional but we need to statically define the
+        # FQBN of the boards we want to test for each platform. In the
+        # future the CLI might automatically detect and download the core
+        # needed to compile against a certain FQBN, at that point the
+        # following `include` section will be useless.
+        include:
+          # This works like this: when the platform is "arduino:samd", the
+          # variable `fqbn` is set to "arduino:samd:nano_33_iot".
+          - arduino-platform: "esp32"
+            fqbn: "esp32:esp32:esp32"
+          - arduino-platform: "arduino:avr"
+            fqbn: "arduino:avr:unowifi"
+
+    runs-on: ubuntu-22.04
+
+    steps:
+      # Clone the repo
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install Arduino CLI
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v1
+
+      # Install the Arduino platform
+      # Will be determined dynamically by the build matrix.
+      - name: Install platform
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install ${{ matrix.arduino-platform }}
+
+      # Finally, we compile the sketch, using the FQBN that was set
+      # in the build matrix.
+      - name: Compile Sketch
+        run: arduino-cli compile --fqbn ${{ matrix.fqbn }} ./examples/lwIOLink_Demo
