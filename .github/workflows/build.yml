@@ -10,12 +10,16 @@ jobs:
     # Clone the repo
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Checkout
+    - name: Install library
+      run: |
+        sudo mkdir -p $ARDUINO_LIB_PATH
+        sudo cp $GITHUB_WORKSPACE/../lwIOLink -r $ARDUINO_LIB_PATH
+    - name: Build
       uses: arduino/compile-sketches@v1
       with:
         fqbn: "arduino:avr:uno"
         sketch-paths: |
-            - $GITHUB_WORKSPACE
+            - $GITHUB_WORKSPACE/examples/lwIOLink_Demo
   build:
     env:
       ARDUINO_LIB_PATH: /home/runner/Arduino/libraries
