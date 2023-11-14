@@ -38,6 +38,7 @@ jobs:
       - name: Install platform
         run: |
           arduino-cli core update-index
+          ls /root/home/runner/.arduino15/
           arduino-cli config set board_manager.additional_urls "${ESP32_BOARD_URL}"
           arduino-cli core install ${{ matrix.arduino-platform }}
           
