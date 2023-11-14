@@ -28,7 +28,7 @@ jobs:
       ESP32_BOARD_URL: https://dl.espressif.com/dl/package_esp32_index.json
     strategy:
       matrix:
-        arduino-platform: ["arduino:avr","esp32:esp32"]
+        arduino-platform: ["arduino:avr","esp32:esp32","arduino:mbed_rp2040"]
         # This is usually optional but we need to statically define the
         # FQBN of the boards we want to test for each platform. In the
         # future the CLI might automatically detect and download the core
@@ -39,6 +39,8 @@ jobs:
           # variable `fqbn` is set to "arduino:samd:nano_33_iot".
           - arduino-platform: "esp32:esp32"
             fqbn: "esp32:esp32:esp32"
+          - arduino-platform: "arduino:mbed_rp2040"
+            fqbn: "arduino:mbed_rp2040:pico"
           - arduino-platform: "arduino:avr"
             fqbn: "arduino:avr:uno"
 
