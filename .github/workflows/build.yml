@@ -3,25 +3,6 @@ name: Build
 on: [push, pull_request]
 
 jobs:
-  build2:
-    env:
-      ARDUINO_LIB_PATH: /home/runner/Arduino/libraries
-    runs-on: ubuntu-22.04
-
-    steps:
-    # Clone the repo
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Install library
-      run: |
-        sudo mkdir -p $ARDUINO_LIB_PATH
-        sudo cp $GITHUB_WORKSPACE/../lwIOLink -r $ARDUINO_LIB_PATH
-    - name: Build
-      uses: arduino/compile-sketches@v1
-      with:
-        fqbn: "arduino:avr:uno"
-        sketch-paths: |
-            - $GITHUB_WORKSPACE/examples/lwIOLink_Demo
   build:
     env:
       ARDUINO_LIB_PATH: /home/runner/Arduino/libraries
