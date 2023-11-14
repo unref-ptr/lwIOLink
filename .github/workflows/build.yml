@@ -21,8 +21,8 @@ jobs:
           # variable `fqbn` is set to "arduino:samd:nano_33_iot".
           - arduino-platform: "esp32:esp32"
             fqbn: "esp32:esp32:esp32"
-          - arduino-platform: "pico:pico"
-            fqbn: "pico:pico:rpipico"
+          - arduino-platform: "rp2040:rp2040"
+            fqbn: "rp2040:rp2040:rpipico"
           - arduino-platform: "arduino:avr"
             fqbn: "arduino:avr:uno"
 
