@@ -29,8 +29,12 @@ uint8_t PDIn[PDInSize] = {0, 1}; //Buffer which will be sent to the Master
 //Hardware configuration for the device
 constexpr Device::HWConfig HWCfg =
 {
+#if defined(ARDUINO_ARCH_AVR)
+  .SerialPort = Serial,
+#else
   .SerialPort = Serial2,
-  .Baud = lwIOLink::COM3,
+#endif
+  .Baud = lwIOLink::COM2,
   .WakeupMode = FALLING,
   .Pin =
   {
