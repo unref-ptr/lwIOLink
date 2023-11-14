@@ -49,6 +49,5 @@ jobs:
       # in the build matrix.
       - name: Compile Sketch
         run: |
-          sudo ls $ARDUINO_LIB_PATH/lwIOLink
           arduino-cli lib list
           arduino-cli compile --fqbn ${{ matrix.fqbn }} ./examples/lwIOLink_Demo
