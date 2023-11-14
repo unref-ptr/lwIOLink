@@ -7,6 +7,7 @@ jobs:
     env:
       ARDUINO_LIB_PATH: /home/runner/Arduino/libraries
       ESP32_BOARD_URL: https://dl.espressif.com/dl/package_esp32_index.json
+      RPI_BOARD_URL: https://raw.githubusercontent.com/earlephilhower/arduino-pico/3.6.0/package.json
     strategy:
       matrix:
         arduino-platform: ["arduino:avr","esp32:esp32","arduino:mbed_rp2040"]
@@ -43,6 +44,7 @@ jobs:
           arduino-cli core update-index
           arduino-cli config init
           arduino-cli config set board_manager.additional_urls "${ESP32_BOARD_URL}"
+          arduino-cli config set board_manager.additional_urls "${RPI_BOARD_URL}"
           arduino-cli core install ${{ matrix.arduino-platform }}
           
       # Install lwIOLink as an Arduino library
