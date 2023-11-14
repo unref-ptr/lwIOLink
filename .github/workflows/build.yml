@@ -7,7 +7,7 @@ jobs:
     env:
       ARDUINO_LIB_PATH: /home/runner/Arduino/libraries
       ESP32_BOARD_URL: https://dl.espressif.com/dl/package_esp32_index.json
-      RPI_BOARD_URL: https://raw.githubusercontent.com/earlephilhower/arduino-pico/3.6.0/package.json
+      RPI_BOARD_URL: https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
     strategy:
       matrix:
         arduino-platform: ["arduino:avr","esp32:esp32","pico:pico"]
