@@ -42,6 +42,8 @@ jobs:
       # Install lwIOLink as an Arduino library
       - name: Install library
         run: |
+          ls
+          ls ..
           sudo mkdir -p $ARDUINO_LIB_PATH
           sudo cp ../lwIOlink -r $CI_PROJECT_DIR $ARDUINO_LIB_PATH          
 
