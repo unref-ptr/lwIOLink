@@ -29,14 +29,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Install lwIOLink as an Arduino library
-      - name: Install library
-        run: |
-          cd ..
-          ls
-          sudo mkdir -p $ARDUINO_LIB_PATH
-          cp -r $CI_PROJECT_DIR $ARDUINO_LIB_PATH
-
       # Install Arduino CLI
       - name: Setup Arduino CLI
         uses: arduino/setup-arduino-cli@v1
@@ -48,6 +40,11 @@ jobs:
           arduino-cli core update-index
           arduino-cli core install ${{ matrix.arduino-platform }}
           
+      # Install lwIOLink as an Arduino library
+      - name: Install library
+        run: |
+          sudo mkdir -p $ARDUINO_LIB_PATH
+          cp ../lwIOlink -r $CI_PROJECT_DIR $ARDUINO_LIB_PATH          
 
 
       # Finally, we compile the sketch, using the FQBN that was set
