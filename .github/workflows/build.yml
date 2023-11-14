@@ -4,6 +4,8 @@ on: [push, pull_request]
 
 jobs:
   build:
+    env:
+      ARDUINO_LIB_PATH: /root/Arduino/libraries
     strategy:
       matrix:
         arduino-platform: ["arduino:avr"]
@@ -27,6 +29,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Install lwIOLink as an Arduino library
+      - name: Install library
+        run: |
+          ls
+          mkdir -p $ARDUINO_LIB_PATH
+          cp -r $CI_PROJECT_DIR $ARDUINO_LIB_PATH
+
       # Install Arduino CLI
       - name: Setup Arduino CLI
         uses: arduino/setup-arduino-cli@v1
@@ -37,6 +46,8 @@ jobs:
         run: |
           arduino-cli core update-index
           arduino-cli core install ${{ matrix.arduino-platform }}
+          
+
 
       # Finally, we compile the sketch, using the FQBN that was set
       # in the build matrix.
