@@ -6,6 +6,7 @@ jobs:
   build:
     env:
       ARDUINO_LIB_PATH: /home/runner/Arduino/libraries
+      ESP32_BOARD_URL: https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
     strategy:
       matrix:
         arduino-platform: ["arduino:avr"]
@@ -37,6 +38,7 @@ jobs:
       - name: Install platform
         run: |
           arduino-cli core update-index
+          arduino-cli config set board_manager.additional_urls "$ESP32_BOARD_URL"
           arduino-cli core install ${{ matrix.arduino-platform }}
           
       # Install lwIOLink as an Arduino library
