@@ -4,6 +4,8 @@ on: [push, pull_request]
 
 jobs:
   build2:
+    env:
+      ARDUINO_LIB_PATH: /home/runner/Arduino/libraries
     runs-on: ubuntu-22.04
 
     steps:
