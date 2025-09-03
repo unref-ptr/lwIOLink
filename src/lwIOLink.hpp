@@ -1,21 +1,7 @@
-/*
-	Copyright (C) 2022 unref-ptr
-    This file is part of lwIOLink.
-    lwIOLink is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-    lwIOLink is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    You should have received a copy of the GNU General Public License
-    along with lwIOLink.  If not, see <https://www.gnu.org/licenses/>.
-    
-    Contact information:
-    <unref-ptr@protonmail.com>
-*/
-#define pragma once
+// SPDX-License-Identifier: GPL-3.0+
+// SPDX-FileCopyrightText: 2025 unref-ptr <unref-ptr@protonmail.com>
+
+#pragma once
 #include <stdint.h>
 #include <Arduino.h>
 
@@ -28,6 +14,74 @@ namespace lwIOLink
         preoperate,
         operate
     };
+    
+    // Utility functions for testing
+    namespace Utils
+    {
+        // Static utility functions that can be tested independently
+        uint32_t DecodeCycleTime(uint8_t encoded_time);
+        uint8_t EncodeCycleTime(uint32_t cycleTime_us);
+    }
+    
+    // IO-Link Protocol Enums - moved from private Device class for reusability
+    
+    // Communication channels (Table A.1)
+    enum Channel
+    {
+        Process = 0,
+        Page,
+        Diagnosis,
+        ISDU
+    };
+    
+    // Master Command access types (Table A.2)
+    enum class MCAccess
+    {
+        Read = 1,
+        Write = 0
+    };
+    
+    // M-sequence types (Table A.3)
+    enum class MSeqType
+    {
+        Type0 = 0,
+        Type1,
+        Type2
+    };
+    
+    // Master Commands (Table B.2)
+    enum MasterCommands
+    {
+        MasterIdent = 0x95,
+        DeviceIden = 0x96,
+        DeviceStartup = 0x97,
+        PDOutOperate = 0x98,
+        Operate = 0x99,
+        Preoperate = 0x9A,
+    };
+    
+    // Direct Parameter Page 1 addresses (Table B.1)
+    enum DP1_Param
+    {
+        MasterCommand = 0x00,
+        MasterCycleTime,
+        MinCycleTime,
+        MSeqCap,
+        RevisionID,
+        ProcessDataIn,
+        ProcessDataOut,
+        VID1,
+        VID2,
+        VID3,
+        DID1,
+        DID2,
+        DID3,
+        FID1,
+        FID2,
+        Res,
+        SystemCommand
+    };
+    
     //IO-Link baudrates
     enum BaudRate: uint32_t
     {
@@ -223,13 +277,6 @@ namespace lwIOLink
             uint8_t addr;
         };
 
-        enum Channel
-        {
-            Process = 0,
-            Page ,
-            Diagnosis,
-            ISDU
-        };
         struct ODSize_t
         {
             uint8_t Startup;
@@ -243,58 +290,13 @@ namespace lwIOLink
             .Preop = 8,
             .Op = 2
         };
-        //Table A.2
-        enum class MCAccess
-        {
-            Read = 1,
-            Write = 0
-        };
-
-        //Table A.3
-        enum class MSeqType
-        {
-            Type0 = 0,
-            Type1,
-            Type2
-        };
+        
         //States for interpreting IO-Link data
         enum ioLink_states
         {
             wait_wake, //Waiting for wakeup signal
             wait_valid_frame, //Waiting for a valid startup message
             run_mode  //Master started communication with device
-        };
-
-        //Table B.2
-        enum MasterCommands
-        {
-            MasterIdent = 0x95,
-            DeviceIden = 0x96,
-            DeviceStartup = 0x97,
-            PDOutOperate = 0x98,
-            Operate = 0x99,
-            Preoperate = 0x9A,
-        };
-        /* Table B.1 */
-        enum DP1_Param
-        {
-            MasterCommand = 0x00,
-            MasterCycleTime,
-            MinCycleTime,
-            MSeqCap,
-            RevisionID,
-            ProcessDataIn,
-            ProcessDataOut,
-            VID1,
-            VID2,
-            VID3,
-            DID1,
-            DID2,
-            DID3,
-            FID1,
-            FID2,
-            Res,
-            SystemCommand
         };
 
         struct Status
