@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: GPL-3.0+
+# SPDX-FileCopyrightText: 2025 unref-ptr <unref-ptr@protonmail.com>
+
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    
+    steps:
+      # Clone the repo
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install required dependencies
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential git ninja-build
+
+      # Make build script executable and run tests
+      - name: Build and run tests
+        run: |
+          cd tests
+          mkdir build
+          cd build
+          cmake .. -G Ninja
+          ninja
+          ./lwIOLink_tests

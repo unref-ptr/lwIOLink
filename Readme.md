@@ -1,7 +1,7 @@
 # lwIOLink 
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-green.svg)](https://www.gnu.org/licenses/gpl-3.0)
-![version](https://img.shields.io/badge/version-0.2.1-blue)
+![version](https://img.shields.io/badge/version-0.3.0-blue)
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/unrefptr)
 
@@ -38,9 +38,9 @@ please look for commercial alternatives as this library will not scale and is no
 
 ## Tested Arduino Targets 
 
-* UNO     (COM1,COM2)
-* ESP32   (COM1,COM2,COM3)
-* RPI Pico (COM1,COM2)
+* UNO                      (COM1,COM2)
+* ESP32 (arduino v3.0.0)   (COM1,COM2,COM3)
+* RPI Pico                 (COM1,COM2)
 
 If you find that the library works for another Arduino board or does not work, notify me by opening an Issue.
 

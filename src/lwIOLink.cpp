@@ -1,26 +1,13 @@
-/*
-	Copyright (C) 2022 unref-ptr
-    This file is part of lwIOLink.
-    lwIOLink is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-    lwIOLink is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    You should have received a copy of the GNU General Public License
-    along with lwIOLink.  If not, see<https://www.gnu.org/licenses/>.
-
-    Contact information:
-   <unref-ptr@protonmail.com>
-*/
+// SPDX-License-Identifier: GPL-3.0+
+// SPDX-FileCopyrightText: 2025 unref-ptr <unref-ptr@protonmail.com>
 #include "lwIOLink.hpp"
 
+#ifndef UNIT_TEST
 #ifdef ARDUINO_ARCH_ESP32
 #include "driver/uart.h"
 #include "soc/uart_reg.h"
 #endif	//ARDUINO_ARCH_ESP32
+#endif  //UNIT_TEST
 
 using namespace lwIOLink;
 
@@ -42,7 +29,62 @@ static constexpr uint8_t MC_ChBitOffset = 5;
 
 uint32_t constexpr Device::TimeBaseLUT[TotalTimeEncodings];
 uint32_t constexpr Device::TimeOffsetLUT[TotalTimeEncodings];
+
 static volatile bool wakeup_signal = false;
+
+// Utils namespace implementation
+namespace lwIOLink {
+namespace Utils {
+
+// Local constants for time encoding (copied from Device class)
+static constexpr uint8_t TotalTimeEncodings = 3;
+static constexpr uint32_t TimeBaseLUT[TotalTimeEncodings] = {100, 400, 1600}; //us
+static constexpr uint32_t TimeOffsetLUT[TotalTimeEncodings] = {0, 6400, 32000}; //us
+
+// Static utility functions for testing
+uint32_t DecodeCycleTime(uint8_t encoded_time) {
+    const uint8_t timebase_code = encoded_time >> timebase_bitoffset;
+    const uint8_t multiplier = encoded_time & multiplier_mask;
+    return TimeOffsetLUT[timebase_code] + (multiplier * TimeBaseLUT[timebase_code]);
+}
+
+uint8_t EncodeCycleTime(uint32_t cycleTime_us) {
+    uint8_t timebase_code;
+    uint8_t multiplier;
+    const unsigned max_multiplier = 63;
+    if (cycleTime_us < 400) {
+        cycleTime_us = 400;
+    }
+    else if (cycleTime_us > 6300 && cycleTime_us < 6400) {
+        cycleTime_us = 6300;
+    }
+    else if (cycleTime_us > 31600 && cycleTime_us < 32000) {
+        cycleTime_us = 31600;
+    }
+    else if (cycleTime_us > 132800) {
+        cycleTime_us = 132800;
+    }
+
+    if (cycleTime_us <= 6300) {
+        timebase_code = 0;
+    }
+    else if (cycleTime_us <= 31600) {
+        timebase_code = 1;
+    }
+    else {
+        timebase_code = 2;
+    }
+    for (multiplier = 0; multiplier <= max_multiplier; multiplier++) {
+        uint32_t cycletime_match = TimeOffsetLUT[timebase_code] + (multiplier * TimeBaseLUT[timebase_code]);
+        if (cycletime_match >= cycleTime_us) {
+            break;
+        }
+    }
+    return (timebase_code << timebase_bitoffset | multiplier);
+}
+
+} // namespace Utils
+} // namespace lwIOLink
 
 
 static void WakeupIRQ()
@@ -51,6 +93,11 @@ static void WakeupIRQ()
 }
 
 void __attribute__((weak)) Device::OnEventsProcessed() 
+{
+    
+}
+
+void __attribute__((weak)) Device::OnNewCycle()
 {
     
 }
@@ -158,54 +205,12 @@ uint8_t Device::GetMseqCap() const
 
 uint32_t Device::DecodeCycleTime(uint8_t encoded_time) const
 {
-    const uint8_t timebase_code = encoded_time >> timebase_bitoffset;
-    const uint8_t multiplier = encoded_time & multiplier_mask;
-    return TimeOffsetLUT[timebase_code] + (multiplier *TimeBaseLUT[timebase_code]);
+    return Utils::DecodeCycleTime(encoded_time);
 }
 
 uint8_t Device::EncodeCycleTime(uint32_t cycleTime_us) const
 {
-    uint8_t timebase_code;
-    uint8_t multiplier;
-    const unsigned max_multiplier = 63;
-    if (cycleTime_us < 400)
-    {
-        cycleTime_us = 400;
-    }
-    else if (cycleTime_us > 6300 && cycleTime_us < 6400)
-    {
-        cycleTime_us = 6300;
-    }
-    else if (cycleTime_us > 31600 && cycleTime_us < 32000)
-    {
-        cycleTime_us = 31600;
-    }
-    else if (cycleTime_us > 132800)
-    {
-        cycleTime_us = 132800;
-    }
-
-    if (cycleTime_us <= 6300)
-    {
-        timebase_code = 0;
-    }
-    else if (cycleTime_us <= 31600)
-    {
-        timebase_code = 1;
-    }
-    else
-    {
-        timebase_code = 2;
-    }
-    for (multiplier = 0; multiplier <= max_multiplier; multiplier++)
-    {
-        uint32_t cycletime_match = TimeOffsetLUT[timebase_code] + (multiplier *TimeBaseLUT[timebase_code]);
-        if (cycletime_match >= cycleTime_us)
-        {
-            break;
-        }
-    }
-    return (timebase_code << timebase_bitoffset | multiplier);
+    return Utils::EncodeCycleTime(cycleTime_us);
 }
 
 Device::Device(uint8_t PDIn, uint8_t PDOut, uint32_t min_cycletime)
@@ -458,6 +463,8 @@ void Device::begin(const HWConfig config)
     TxEn = config.Pin.TxEN;
     WuPin = config.Pin.Wakeup;
     SerialPort = &config.SerialPort;
+    
+#ifndef UNIT_TEST
 #ifdef ARDUINO_SAM_DUE
     static_cast<UARTClass*>(SerialPort)->begin(static_cast<uint32_t> (config.Baud), SERIAL_8E1);
 #elif defined(ARDUINO_ARCH_ESP32)
@@ -494,6 +501,7 @@ void Device::begin(const HWConfig config)
 #endif //ARDUINO_RASPBERRY_PI_PICO
     static_cast<HardwareSerial*>(SerialPort)->begin(static_cast<uint32_t> (config.Baud), SERIAL_8E1);
 #endif
+#endif // UNIT_TEST
     initTransciever(config.WakeupMode);
 }
 
